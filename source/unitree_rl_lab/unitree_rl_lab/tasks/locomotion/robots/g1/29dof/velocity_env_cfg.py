@@ -401,6 +401,15 @@ class RobotPlayEnvCfg(RobotEnvCfg):
     def __post_init__(self):
         super().__post_init__()
         self.scene.num_envs = 32
-        self.scene.terrain.terrain_generator.num_rows = 2
-        self.scene.terrain.terrain_generator.num_cols = 10
+        # Sync Fabric/visuals after reset during GUI play (GPU sim + Fabric).
+        self.rerender_on_reset = True
+        # Flat ground at origin so the default camera and env_0 overlap during play.
+        self.scene.terrain.terrain_type = "plane"
+        self.scene.terrain.terrain_generator = None
+        self.scene.terrain.max_init_terrain_level = None
         self.commands.base_velocity.ranges = self.commands.base_velocity.limit_ranges
+        self.observations.policy.enable_corruption = False
+        self.curriculum.terrain_levels = None
+        self.viewer.origin_type = "asset_root"
+        self.viewer.asset_name = "robot"
+        self.viewer.env_index = 0

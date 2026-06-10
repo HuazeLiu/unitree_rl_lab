@@ -23,3 +23,10 @@ classifiers = [
     "Operating System :: POSIX :: Linux"
 ]
 dynamic = []
+
+[project.optional-dependencies]
+perception = [
+    "pillow",
+    "opencv-python-headless",
+    "segment-anything",
+]

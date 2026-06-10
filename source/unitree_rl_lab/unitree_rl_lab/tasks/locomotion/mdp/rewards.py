@@ -205,6 +205,35 @@ Other rewards.
 """
 
 
+def arm_pose_tracking_penalty(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    target_positions: dict[str, float],
+) -> torch.Tensor:
+    """Penalize squared joint position error for arm joints relative to fixed hold targets."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    penalty = torch.zeros(env.num_envs, device=env.device)
+
+    for joint_name, target_pos in target_positions.items():
+        joint_ids, _ = asset.find_joints(joint_name)
+        error = asset.data.joint_pos[:, joint_ids] - target_pos
+        penalty += torch.sum(torch.square(error), dim=-1)
+
+    return penalty
+
+
+def arm_joint_vel_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+    """Penalize arm joint velocities."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    return torch.sum(torch.square(asset.data.joint_vel[:, asset_cfg.joint_ids]), dim=1)
+
+
+def arm_joint_torque_l2(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
+    """Penalize arm joint torques."""
+    asset: Articulation = env.scene[asset_cfg.name]
+    return torch.sum(torch.square(asset.data.applied_torque[:, asset_cfg.joint_ids]), dim=1)
+
+
 def joint_mirror(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg, mirror_joints: list[list[str]]) -> torch.Tensor:
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]

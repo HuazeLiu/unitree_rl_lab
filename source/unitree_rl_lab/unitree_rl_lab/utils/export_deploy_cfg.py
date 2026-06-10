@@ -52,6 +52,9 @@ def export_deploy_cfg(env: ManagerBasedRLEnv, log_dir):
     action_terms = zip(action_names, env.action_manager._terms.values())
     cfg["actions"] = {}
     for action_name, action_term in action_terms:
+        # Sim-only terms (e.g. ArmHoldPositionAction) have no deployable policy dimensions.
+        if action_term.action_dim == 0:
+            continue
         term_cfg = action_term.cfg.copy()
         if isinstance(term_cfg.scale, float):
             term_cfg.scale = [term_cfg.scale for _ in range(action_term.action_dim)]
